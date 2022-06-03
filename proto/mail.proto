@@ -1,6 +1,7 @@
+syntax = "proto3";
 package proto;
 
-option go_package = "mailinglist/proto"
+option go_package = "mailinglist/proto";
 
 message EmailEntry {
 	int64 id = 1;
