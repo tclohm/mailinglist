@@ -67,7 +67,7 @@ func CreateEmail(db *sql.DB, email string) error {
 	return nil
 }
 
-func GetEmail(db *sql.Db, email string) (*EmailEntry, error) {
+func GetEmail(db *sql.DB, email string) (*EmailEntry, error) {
 	rows, err := db.Query(`
 		SELECT id, email, confirmed_at, opt_out
 		FROM emails
@@ -97,8 +97,8 @@ func UpdateEmail(db *sql.DB, entry EmailEntry) error {
 			opt_out=?`, entry.Email, t, entry.OptOut, t, entry.OptOut)
 
 	if err != nil {
-		lof.Println(err)
-		return er
+		log.Println(err)
+		return err
 	}
 
 	return nil
@@ -125,7 +125,7 @@ type GetEmailBatchQueryParams struct {
 
 func GetEmailBatch(db *sql.DB, params GetEmailBatchQueryParams) ([]EmailEntry, error) {
 	var empty []EmailEntry
-	row, err := db.Query(`
+	rows, err := db.Query(`
 		SELECT id, email, confirmed_at, opt_out
 		FROM emails
 		WHERE opt_out = false
