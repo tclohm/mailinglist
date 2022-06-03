@@ -1,10 +1,14 @@
 package jsonapi
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"net/http"
 	"database/sql"
 	"log"
 	"io"
+	"mailinglist/mdb"
 )
 
 func setJsonHeader(w http.ResponseWriter) {
@@ -32,7 +36,7 @@ func returnJson[T any](w http.ResponseWriter, withData func() (T, error)) {
 		return
 	}
 
-	dataJson, err :=jsonMarshal(&data)
+	dataJson, err :=json.Marshal(&data)
 	if err != nil {
 		log.Print(err)
 		w.WriteHeader(500)
@@ -55,7 +59,7 @@ func returnErr(w http.ResponseWriter, err error, code int) {
 }
 
 func CreateEmail(db *sql.DB) http.Handler {
-	return http.HanderFunc(func(w http.ResponseWriter, req *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != "POST" {
 			return
 		}
@@ -63,7 +67,7 @@ func CreateEmail(db *sql.DB) http.Handler {
 		entry := mdb.EmailEntry{}
 		fromJson(req.Body, &entry)
 
-		if err != mdb.CreateEmail(db, entry.Email); err != nil {
+		if err := mdb.CreateEmail(db, entry.Email); err != nil {
 			returnErr(w, err, 400)
 		}
 
@@ -75,7 +79,7 @@ func CreateEmail(db *sql.DB) http.Handler {
 }
 
 func GetEmail(db *sql.DB) http.Handler {
-	return http.HanderFunc(func(w http.ResponseWriter, req *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != "GET" {
 			return
 		}
@@ -91,7 +95,7 @@ func GetEmail(db *sql.DB) http.Handler {
 }
 
 func GetEmailBatch(db *sql.DB) http.Handler {
-	return http.HanderFunc(func(w http.ResponseWriter, req *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != "GET" {
 			return
 		}
@@ -111,7 +115,7 @@ func GetEmailBatch(db *sql.DB) http.Handler {
 }
 
 func UpdateEmail(db *sql.DB) http.Handler {
-	return http.HanderFunc(func(w http.ResponseWriter, req *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != "PUT" {
 			return
 		}
@@ -119,7 +123,7 @@ func UpdateEmail(db *sql.DB) http.Handler {
 		entry := mdb.EmailEntry{}
 		fromJson(req.Body, &entry)
 
-		if err != mdb.UpdateEmail(db, entry.Email); err != nil {
+		if err := mdb.UpdateEmail(db, entry); err != nil {
 			returnErr(w, err, 400)
 		}
 
@@ -131,7 +135,7 @@ func UpdateEmail(db *sql.DB) http.Handler {
 }
 
 func DeleteEmail(db *sql.DB) http.Handler {
-	return http.HanderFunc(func(w http.ResponseWriter, req *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != "DELETE" {
 			return
 		}
@@ -139,7 +143,7 @@ func DeleteEmail(db *sql.DB) http.Handler {
 		entry := mdb.EmailEntry{}
 		fromJson(req.Body, &entry)
 
-		if err != mdb.DeleteEmail(db, entry.Email); err != nil {
+		if err := mdb.DeleteEmail(db, entry.Email); err != nil {
 			returnErr(w, err, 400)
 		}
 
